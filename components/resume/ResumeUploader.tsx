@@ -15,7 +15,7 @@ interface ResumeUploaderProps {
 export default function ResumeUploader({ onUploadSuccess }: ResumeUploaderProps) {
   const supabase = createClient();
   const [isUploading, setIsUploading] = useState(false);
-  const [file, setFile] = useState<<FileFile | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFile(acceptedFiles[0]);
@@ -74,8 +74,8 @@ export default function ResumeUploader({ onUploadSuccess }: ResumeUploaderProps)
   };
 
   return (
-    <<<divdivdiv className="w-full max-w-2xl mx-auto space-y-6">
-      <<<divdivdiv
+    <div className="w-full max-w-2xl mx-auto space-y-6">
+      <div
         {...getRootProps()}
         className={cn(
           "relative group border-2 border-dashed transition-all duration-200 rounded-2xl p-12 text-center cursor-pointer",
@@ -84,53 +84,53 @@ export default function ResumeUploader({ onUploadSuccess }: ResumeUploaderProps)
             : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.07]"
         )}
       >
-        <<<inputinputinput {...getInputProps()} />
+        <input {...getInputProps()} />
 
         {!file ? (
-          <<<divdivdiv className="flex flex-col items-center gap-4">
-            <<<divdivdiv className="w-16 h-16 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-              <<<UploadUpload size={32} />
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+              <Upload size={32} />
             </div>
-            <<<divdivdiv className="space-y-1">
-              <<<pppp className="text-white font-medium">Drop your resume here</p>
-              <<<pppp className="text-white/40 text-sm">PDF only, max 5MB</p>
+            <div className="space-y-1">
+              <p className="text-white font-medium">Drop your resume here</p>
+              <p className="text-white/40 text-sm">PDF only, max 5MB</p>
             </div>
           </div>
         ) : (
-          <<<divdivdiv className="flex items-center justify-between p-4 bg-white/10 rounded-xl border border-white/10">
-            <<<divdivdiv className="flex items-center gap-3">
-              <<<divdivdiv className="p-2 bg-blue-500/20 rounded-lg text-blue-500">
-                <<<FileFileText size={20} />
+          <div className="flex items-center justify-between p-4 bg-white/10 rounded-xl border border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/20 rounded-lg text-blue-500">
+                <FileText size={20} />
               </div>
-              <<<divdivdiv className="text-left">
-                <<<pppp className="text-white text-sm font-medium truncate max-w-[200px]">{file.name}</p>
-                <<<pppp className="text-white/40 text-xs">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+              <div className="text-left">
+                <p className="text-white text-sm font-medium truncate max-w-[200px]">{file.name}</p>
+                <p className="text-white/40 text-xs">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
               </div>
             </div>
-            <<<buttonbuttonbutton
+            <button
               onClick={(e) => { e.stopPropagation(); setFile(null); }}
               className="p-1 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-colors"
             >
-              <<<XX size={16} />
-            </buttonbutton>
+              <X size={16} />
+            </button>
           </div>
         )}
       </div>
 
       {file && (
-        <<<motionmotionmotion.div
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-end"
         >
-          <<<buttonbuttonbutton
+          <button
             onClick={uploadFile}
             disabled={isUploading}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white px-6 py-2 rounded-xl transition-all active:scale-95 font-medium"
           >
-            {isUploading ? "Uploading..." : <<<>>><<CheckCheckCircle2 size={18} /> Upload Resume</>}
-          </buttonbutton>
-        </motionmotion.div>
+            {isUploading ? "Uploading..." : <><CheckCircle2 size={18} /> Upload Resume</>}
+          </button>
+        </motion.div>
       )}
     </div>
   );
