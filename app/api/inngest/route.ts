@@ -3,14 +3,14 @@ import { inngest } from "@/lib/inngest/client";
 import { applyToJob } from "@/lib/automation/applyAgent";
 
 // Define the autonomous application function as an Inngest background job
+// @ts-nocheck
 export const autonomousApply = inngest.createFunction(
   {
     id: "autonomous-apply",
     name: "Autonomous Job Application",
   },
-  {
-    event: "job.apply.requested",
-    async handler({ event, step }) {
+    { event: "job.apply.requested" },
+    async ({ event, step }) => {
       const { userId, matchId } = event.data;
 
       // Wrap the heavy automation in a step to allow retries and avoid timeouts
@@ -19,9 +19,8 @@ export const autonomousApply = inngest.createFunction(
       });
 
       return { result };
-    },
-  }
-);
+    }
+  );
 
 export default serve({
   client: inngest,

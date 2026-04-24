@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { chromium } from 'playwright-extra';
+// @ts-ignore
 import stealth from 'playwright-stealth';
 
 chromium.use(stealth());
@@ -73,7 +74,7 @@ export async function applyToJob(userId: string, matchId: string) {
     }
 
     const wsEndpoint = `wss://chrome.browserless.io?token=${browserlessToken}`;
-    const browser = await chromium.connect({ endpoint: wsEndpoint });
+    const browser = await chromium.connect({ wsEndpoint });
     const context = await browser.newContext();
     const page = await context.newPage();
 

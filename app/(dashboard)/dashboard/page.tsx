@@ -179,7 +179,7 @@ export default function DashboardPage() {
               You're on track to hit your goal this week.
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

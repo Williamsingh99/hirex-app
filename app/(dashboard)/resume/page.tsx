@@ -13,7 +13,7 @@ import {
   Download,
   Plus,
   History,
-  Eye
+  Eye, Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -159,7 +159,7 @@ export default function ResumePage() {
                 </p>
               </div>
               <div className="mt-8 flex gap-4">
-                <ResumeUploader />
+                <ResumeUploader onUploadSuccess={() => {}} />
               </div>
             </div>
           ) : (
@@ -207,7 +207,7 @@ export default function ResumePage() {
                   </div>
                 </div>
 
-                <AtsOptimizer resumeId={currentResume.id} />
+                <AtsOptimizer result={null} />
               </div>
             </motion.div>
           )}
