@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-extra';
+import stealth from 'playwright-stealth';
+
+chromium.use(stealth());
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'dummy_key_for_build',
@@ -62,16 +65,20 @@ export async function applyToJob(userId: string, matchId: string) {
     // API implementation (Mocked for this build stage)
     console.log(`[Indeed API] Applying with cover letter: ${coverLetter.substring(0, 50)}...`);
   } else if (job.portal === 'naukri') {
-    // Playwright Automation
-    const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
+    // REMOTE BROWSER IMPLEMENTATION (Fixes Vercel Serverless Timeout & Size Limits)
+    // We connect to a remote browser (Browserless.io) instead of launching locally
+    const browserlessToken = process.env.BROWSERLESS_TOKEN;
+    if (!browserlessToken) {
+      throw new Error('BROWSERLESS_TOKEN is missing. Remote browser connection failed.');
+    }
+
+    const wsEndpoint = `wss://chrome.browserless.io?token=${browserlessToken}`;
+    const browser = await chromium.connect({ endpoint: wsEndpoint });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
     try {
       await page.goto(job.apply_url);
-      // This is a simplified automation flow.
-      // In prod, this would involve:
-      // 1. Session management (cookie injection)
-      // 2. Filling specific form fields based on the job portal's current DOM
-      // 3L. Uploading the resume PDF from the resume.file_url
       await page.waitForSelector('input[type="file"]', { timeout: 5000 }).catch(() => {});
       await page.fill('input[name="name"]', profile.full_name);
       await page.fill('input[name="email"]', profile.email);
