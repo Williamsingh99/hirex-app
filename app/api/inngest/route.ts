@@ -22,7 +22,7 @@ export const autonomousApply = inngest.createFunction(
     }
   );
 
-export default serve({
+export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [autonomousApply],
 });
