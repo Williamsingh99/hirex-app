@@ -1,11 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { chromium } from 'playwright-extra';
-// @ts-ignore
-import stealth from 'playwright-stealth';
-
-chromium.use(stealth());
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'dummy_key_for_build',
@@ -68,6 +63,9 @@ export async function applyToJob(userId: string, matchId: string) {
   } else if (job.portal === 'naukri') {
     // REMOTE BROWSER IMPLEMENTATION (Fixes Vercel Serverless Timeout & Size Limits)
     // We connect to a remote browser (Browserless.io) instead of launching locally
+    const { chromium } = require('playwright-extra');
+    const stealth = require('playwright-stealth');
+    chromium.use(stealth());
     const browserlessToken = process.env.BROWSERLESS_TOKEN;
     if (!browserlessToken) {
       throw new Error('BROWSERLESS_TOKEN is missing. Remote browser connection failed.');

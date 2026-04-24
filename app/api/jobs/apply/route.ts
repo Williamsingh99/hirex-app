@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { applyToJob } from '@/lib/automation/applyAgent';
+import { inngest } from '@/lib/inngest/client';
 
 export async function POST(req: Request) {
   try {
@@ -13,12 +13,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Trigger the automation agent
-    const result = await applyToJob(user.id, job_match_id);
+    // 2. Trigger the automation agent via Inngest (Background Job)
+    await inngest.send({
+      name: "job.apply.requested",
+      data: {
+        userId: user.id,
+        matchId: job_match_id
+      }
+    });
 
     return NextResponse.json({
-      message: 'Application submitted successfully via AI Agent',
-      ...result
+      message: 'Application queued successfully via AI Agent',
     });
   } catch (error: any) {
     console.error('Apply error:', error);

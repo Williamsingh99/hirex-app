@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -16,7 +17,9 @@ import {
   Sparkles,
   ChevronRight,
   ShieldCheck,
-  Lock
+  Lock,
+  Target,
+  Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

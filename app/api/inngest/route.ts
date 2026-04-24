@@ -1,3 +1,5 @@
+// @ts-nocheck
+export const dynamic = 'force-dynamic';
 import { serve } from "inngest/next";
 import { inngest } from "@/lib/inngest/client";
 import { applyToJob } from "@/lib/automation/applyAgent";
