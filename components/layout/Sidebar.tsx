@@ -33,28 +33,28 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <<motionmotion.aside
+    <motion.aside
       initial={false}
       animate={{ width: isCollapsed ? 64 : 240 }}
       className="fixed left-0 top-0 h-screen bg-[#111111] border-r border-white/5 flex flex-col z-50 transition-all duration-300 ease-in-out"
     >
       {/* Logo Section */}
-      <<divdiv className="h-16 flex items-center px-4 relative overflow-hidden">
-        <<divdiv className="absolute inset-0 bg-blue-500/10 blur-xl" />
-        <<divdiv className={cn(
+      <div className="h-16 flex items-center px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-blue-500/10 blur-xl" />
+        <div className={cn(
           "relative flex items-center gap-3 transition-opacity duration-200",
           isCollapsed && "opacity-0 pointer-events-none"
         )}>
-          <<divdiv className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(59,130,246,0.5)]">
             H
           </div>
-          <<spanspan className="text-white font-bold text-xl tracking-tighter">
-            Hire<<spanspan className="text-blue-500">X</span>
+          <span className="text-white font-bold text-xl tracking-tighter">
+            Hire<span className="text-blue-500">X</span>
           </span>
         </div>
         {isCollapsed && (
-          <<divdiv className="w-full flex justify-center">
-            <<divdiv className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+          <div className="w-full flex justify-center">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(59,130,246,0.5)]">
               H
             </div>
           </div>
@@ -62,11 +62,11 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <<navnav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <<LinkLink
+            <Link
               key={item.id}
               href={item.href}
               className={cn(
@@ -76,15 +76,15 @@ export default function Sidebar() {
                   : "text-white/40 hover:text-white/70 hover:bg-white/5"
               )}
             >
-              <<itemitem.icon className={cn(
+              <item.icon className={cn(
                 "w-5 h-5 transition-colors",
                 isActive ? "text-blue-500" : "group-hover:text-white/70"
               )} />
               {!isCollapsed && (
-                <<spanspan className="text-sm font-medium">{item.label}</span>
+                <span className="text-sm font-medium">{item.label}</span>
               )}
               {!isCollapsed && item.id === "inbox" && (
-                <<spanspan className="ml-auto bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                <span className="ml-auto bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
                   3
                 </span>
               )}
@@ -94,25 +94,25 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom Section */}
-      <<divdiv className="p-3 border-t border-white/5 space-y-2">
-        <<divdiv className={cn(
+      <div className="p-3 border-t border-white/5 space-y-2">
+        <div className={cn(
           "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
           isCollapsed ? "justify-center" : ""
         )}>
-          <<divdiv className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0" />
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0" />
           {!isCollapsed && (
-            <<divdiv className="flex-1 overflow-hidden">
-              <<pp className="text-white text-sm font-medium truncate">Alex Rivera</p>
-              <<pp className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Pro Plan</p>
+            <div className="flex-1 overflow-hidden">
+              <p className="text-white text-sm font-medium truncate">Alex Rivera</p>
+              <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Pro Plan</p>
             </div>
           )}
         </div>
 
-        <<buttonbutton
+        <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="w-full flex items-center justify-center p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all"
         >
-          {isCollapsed ? <<ChevronChevronRight size={18} /> : <<ChevronChevronLeft size={18} />}
+          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
       </div>
     </motion.aside>

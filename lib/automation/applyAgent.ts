@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { chromium } from 'playwright';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || 'dummy_key_for_build',
 });
 
 export async function applyToJob(userId: string, matchId: string) {
@@ -29,7 +29,7 @@ export async function applyToJob(userId: string, matchId: string) {
 
   const { data: resume } = await supabase
     .from('resumes')
-    .select('file_url')
+    .select('id, file_url')
     .eq('user_id', userId)
     .eq('is_active', true)
     .single();

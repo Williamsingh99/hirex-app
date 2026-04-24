@@ -20,31 +20,31 @@ export default function ApplicationsTable({ applications }: ApplicationTableProp
   };
 
   return (
-    <<divdiv className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm">
-      <<divdiv className="p-6 border-b border-white/10 flex items-center justify-between">
-        <<hh3 className="text-lg font-semibold text-white">Recent Activity</h3>
-        <<aa href="/dashboard/applications" className="text-xs text-blue-500 hover:text-blue-400 transition-colors font-medium">View all applications</a>
+    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm">
+      <div className="p-6 border-b border-white/10 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white">Recent Activity</h3>
+        <a href="/dashboard/applications" className="text-xs text-blue-500 hover:text-blue-400 transition-colors font-medium">View all applications</a>
       </div>
-      <<divdiv className="overflow-x-auto">
-        <<tabletable className="w-full text-left border-collapse">
-          <<theadthead className="bg-white/5 text-white/40 text-[10px] font-bold uppercase tracking-widest">
-            <<trtr>
-              <<thth className="px-6 py-4">Job Role</th>
-              <<thth className="px-6 py-4">Company</th>
-              <<thth className="px-6 py-4">Portal</th>
-              <<thth className="px-6 py-4">Date</th>
-              <<thth className="px-6 py-4">Status</th>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-white/5 text-white/40 text-[10px] font-bold uppercase tracking-widest">
+            <tr>
+              <th className="px-6 py-4">Job Role</th>
+              <th className="px-6 py-4">Company</th>
+              <th className="px-6 py-4">Portal</th>
+              <th className="px-6 py-4">Date</th>
+              <th className="px-6 py-4">Status</th>
             </tr>
           </thead>
-          <<tbodytbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-white/5">
             {applications.map((app, idx) => (
-              <<trtr key={idx} className="hover:bg-white/5 transition-colors group">
-                <<tdtd className="px-6 py-4 text-sm text-white font-medium">{app.job?.title || 'Unknown'}</td>
-                <<tdtd className="px-6 py-4 text-sm text-white/60">{app.job?.company || 'Unknown'}</td>
-                <<tdtd className="px-6 py-4 text-sm text-white/40 capitalize">{app.portal}</td>
-                <<tdtd className="px-6 py-4 text-sm text-white/40">{new Date(app.applied_at).toLocaleDateString()}</td>
-                <<tdtd className="px-6 py-4">
-                  <<divdiv className={cn(
+              <tr key={idx} className="hover:bg-white/5 transition-colors group">
+                <td className="px-6 py-4 text-sm text-white font-medium">{app.job?.title || 'Unknown'}</td>
+                <td className="px-6 py-4 text-sm text-white/60">{app.job?.company || 'Unknown'}</td>
+                <td className="px-6 py-4 text-sm text-white/40 capitalize">{app.portal}</td>
+                <td className="px-6 py-4 text-sm text-white/40">{new Date(app.applied_at).toLocaleDateString()}</td>
+                <td className="px-6 py-4">
+                  <div className={cn(
                     "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border inline-block",
                     statusColors[app.status] || statusColors.applied
                   )}>
@@ -54,7 +54,7 @@ export default function ApplicationsTable({ applications }: ApplicationTableProp
               </tr>
             ))}
           </tbody>
-        </tabletable>
+        </table>
       </div>
     </div>
   );

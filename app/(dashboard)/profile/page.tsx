@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
+    email: "",
     phone: "",
     location: "",
     headline: "",

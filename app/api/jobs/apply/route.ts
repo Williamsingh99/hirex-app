@@ -17,7 +17,6 @@ export async function POST(req: Request) {
     const result = await applyToJob(user.id, job_match_id);
 
     return NextResponse.json({
-      success: true,
       message: 'Application submitted successfully via AI Agent',
       ...result
     });

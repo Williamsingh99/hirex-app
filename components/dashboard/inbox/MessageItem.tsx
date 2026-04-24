@@ -20,7 +20,7 @@ export default function MessageItem({ message, isActive, onClick }: MessageItemP
   };
 
   return (
-    <<divdiv
+    <div
       onClick={onClick}
       className={cn(
         "p-4 cursor-pointer transition-all border-l-2 group",
@@ -29,20 +29,20 @@ export default function MessageItem({ message, isActive, onClick }: MessageItemP
           : "bg-transparent border-transparent hover:bg-white/5"
       )}
     >
-      <<divdiv className="flex justify-between items-start mb-1">
-        <<spanspan className="text-sm font-bold text-white truncate max-w-[150px]">{message.sender_name}</spanspan>
-        <<spanspan className="text-[10px] text-white/30">{new Date(message.received_at).toLocaleDateString()}</spanspan>
+      <div className="flex justify-between items-start mb-1">
+        <span className="text-sm font-bold text-white truncate max-w-[150px]">{message.sender_name}</span>
+        <span className="text-[10px] text-white/30">{new Date(message.received_at).toLocaleDateString()}</span>
       </div>
-      <<divdiv className="flex items-center justify-between gap-2">
-        <<spanspan className="text-xs text-white/60 truncate">{message.subject}</spanspan>
-        <<divdiv className={cn(
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs text-white/60 truncate">{message.subject}</span>
+        <div className={cn(
           "px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-tighter border",
           typeColors[message.message_type] || typeColors.general
         )}>
           {message.message_type.replace('_', ' ')}
         </div>
       </div>
-      <<pp className="text-xs text-white/30 truncate mt-1">{message.ai_summary}</pp>
+      <p className="text-xs text-white/30 truncate mt-1">{message.ai_summary}</p>
     </div>
   );
 }

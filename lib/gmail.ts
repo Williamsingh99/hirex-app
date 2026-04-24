@@ -42,7 +42,7 @@ export async function getMessageDetails(gmail: any, messageId: string) {
     id: message.id,
     snippet,
     body,
-    subject: payload.headers?.find(h => h.name === 'Subject')?.value || 'No Subject',
-    from: payload.headers?.find(h => h.name === 'From')?.value || 'Unknown Sender',
+    subject: payload.headers?.find((h: any) => h.name === 'Subject')?.value || 'No Subject',
+    from: payload.headers?.find((h: any) => h.name === 'From')?.value || 'Unknown Sender',
   };
 }

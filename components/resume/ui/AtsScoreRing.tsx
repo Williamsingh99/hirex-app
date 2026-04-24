@@ -21,9 +21,9 @@ export default function AtsScoreRing({ score, size = 160 }: AtsScoreRingProps) {
   };
 
   return (
-    <<divdiv className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <<svgsvg className="transform -rotate-90" width={size} height={size}>
-        <<circlecircle
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -32,7 +32,7 @@ export default function AtsScoreRing({ score, size = 160 }: AtsScoreRingProps) {
           fill="transparent"
           className="text-white/10"
         />
-        <<motionmotion.circle
+        <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -47,11 +47,11 @@ export default function AtsScoreRing({ score, size = 160 }: AtsScoreRingProps) {
           className={cn("transition-colors duration-500", getColor())}
         />
       </svg>
-      <<divdiv className="absolute flex flex-col items-center justify-center">
-        <<spanspan className={cn("text-4xl font-bold transition-colors duration-500", getColor().replace('stroke-', 'text-'))}>
+      <div className="absolute flex flex-col items-center justify-center">
+        <span className={cn("text-4xl font-bold transition-colors duration-500", getColor().replace('stroke-', 'text-'))}>
           {score}
         </span>
-        <<spanspan className="text-[10px] font-bold text-white/30 uppercase tracking-widest">ATS Score</span>
+        <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">ATS Score</span>
       </div>
     </div>
   );

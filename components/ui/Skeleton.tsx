@@ -10,7 +10,7 @@ interface SkeletonProps {
 
 export default function Skeleton({ className }: SkeletonProps) {
   return (
-    <<divdiv className={cn(
+    <div className={cn(
       "animate-pulse bg-white/10 rounded-xl",
       className
     )} />

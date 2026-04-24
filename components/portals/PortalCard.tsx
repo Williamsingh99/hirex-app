@@ -40,47 +40,47 @@ export default function PortalCard({ portal, status, jobsFound, lastSynced, onCo
   const isActive = status === "active";
 
   return (
-    <<motionmotion.div
+    <motion.div
       whileHover={{ y: -5 }}
       className="group bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm transition-all hover:border-white/20"
     >
-      <<divdiv className="flex items-start justify-between mb-6">
-        <<divdiv className="flex items-center gap-4">
-          <<divdiv className={cn(
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <div className={cn(
             "w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg bg-gradient-to-br",
             config.color
           )}>
             {config.icon}
           </div>
-          <<divdiv>
-            <<hh3 className="text-lg font-semibold text-white">{config.name}</h3>
-            <<pp className="text-white/40 text-xs">{config.description}</p>
+          <div>
+            <h3 className="text-lg font-semibold text-white">{config.name}</h3>
+            <p className="text-white/40 text-xs">{config.description}</p>
           </div>
         </div>
 
-        <<divdiv className={cn(
+        <div className={cn(
           "flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
           isActive ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"
         )}>
-          {isActive ? <<CheckCircle2 size={12} /> : <<XCircle size={12} />}
+          {isActive ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
           {status}
         </div>
       </div>
 
-      <<divdiv className="grid grid-cols-2 gap-4 mb-8">
-        <<divdiv className="p-3 bg-white/5 rounded-lg border border-white/5">
-          <<pp className="text-[10px] font-bold text-white/30 uppercase mb-1">Jobs Found</p>
-          <<pp className="text-lg font-semibold text-white">{jobsFound}</pp>
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="p-3 bg-white/5 rounded-lg border border-white/5">
+          <p className="text-[10px] font-bold text-white/30 uppercase mb-1">Jobs Found</p>
+          <p className="text-lg font-semibold text-white">{jobsFound}</p>
         </div>
-        <<divdiv className="p-3 bg-white/5 rounded-lg border border-white/5">
-          <<pp className="text-[10px] font-bold text-white/30 uppercase mb-1">Last Sync</p>
-          <<pp className="text-sm text-white/60 truncate">
+        <div className="p-3 bg-white/5 rounded-lg border border-white/5">
+          <p className="text-[10px] font-bold text-white/30 uppercase mb-1">Last Sync</p>
+          <p className="text-sm text-white/60 truncate">
             {lastSynced ? new Date(lastSynced).toLocaleDateString() : "Never"}
-          </pp>
+          </p>
         </div>
       </div>
 
-      <<buttonbutton
+      <button
         onClick={onConnect}
         disabled={isConnecting}
         className={cn(
@@ -91,12 +91,12 @@ export default function PortalCard({ portal, status, jobsFound, lastSynced, onCo
         )}
       >
         {isConnecting ? (
-          <<LoaderLoader2 size={18} className="animate-spin" />
+          <Loader2 size={18} className="animate-spin" />
         ) : isActive ? (
           <>Connected</>
         ) : (
           <>
-            <<Link2Link2 size={18} />
+            <Link2 size={18} />
             Connect {config.name}
           </>
         )}
