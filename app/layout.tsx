@@ -8,13 +8,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <<htmlhtml lang="en">
-      <<bodybody className="bg-[#0A0A0A] text-white antialiased">
-        <<ErrorBoundaryErrorBoundary>
+    <html lang="en">
+      <body className="bg-[#0A0A0A] text-white antialiased">
+        <ErrorBoundary>
           {children}
-          <<ToasterToaster position="top-right" closeButton richColors />
-        </ErrorBoundaryErrorBoundary>
-      </bodybody>
-    </htmlhtml>
+          <Toaster position="top-right" closeButton richColors />
+        </ErrorBoundary>
+      </body>
+    </html>
   );
 }
