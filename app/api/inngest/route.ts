@@ -10,9 +10,9 @@ const autonomousApply = inngest.createFunction(
   {
     id: "autonomous-apply",
     name: "Autonomous Job Application",
+    event: "job.apply.requested"
   },
-    { event: "job.apply.requested" },
-    async ({ event, step }) => {
+  async ({ event, step }) => {
       const { userId, matchId } = event.data;
 
       // Wrap the heavy automation in a step to allow retries and avoid timeouts
