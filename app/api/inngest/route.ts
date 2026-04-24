@@ -4,7 +4,7 @@ import { applyToJob } from "@/lib/automation/applyAgent";
 
 // Define the autonomous application function as an Inngest background job
 // @ts-nocheck
-export const autonomousApply = inngest.createFunction(
+const autonomousApply = inngest.createFunction(
   {
     id: "autonomous-apply",
     name: "Autonomous Job Application",
