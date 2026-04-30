@@ -19,68 +19,64 @@ import {
 import { cn } from "@/lib/utils";
 import JobMatchCard from "@/components/dashboard/jobs/JobMatchCard";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import { Job, ApplicationRecord } from "@/types/database";
 
 export default function JobsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const supabase = createClient();
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
+    fetchJobs();
   }, []);
 
-  const mockJobs = [
-    {
-      id: '1',
-      title: 'Senior Frontend Engineer',
-      company: 'Vercel',
-      location: 'Remote',
-      salary: '₹24L - ₹40L',
-      score: 98,
-      category: 'Frontend',
-      description: 'Looking for a React expert to build the next generation of deployment platforms.',
-      posted_at: '2h ago',
-    },
-    {
-      id: '2',
-      title: 'Product Engineer',
-      company: 'Linear',
-      location: 'Remote, US',
-      salary: '₹30L - ₹50L',
-      score: 92,
-      category: 'Fullstack',
-      description: 'Join our small, high-performance team focused on crafting the best issue tracker in the world.',
-      posted_at: '5h ago',
-    },
-    {
-      id: '3',
-      title: 'Software Engineer',
-      company: 'Stripe',
-      location: 'Bangalore, India',
-      salary: '₹20L - ₹35L',
-      score: 85,
-      category: 'Backend',
-      description: 'Scaling payment infrastructure for millions of businesses globally.',
-      posted_at: '1d ago',
-    },
-    {
-      id: '4',
-      title: 'Frontend Lead',
-      company: 'Airbnb',
-      location: 'Remote',
-      salary: '₹35L - ₹60L',
-      score: 78,
-      category: 'Frontend',
-      description: 'Designing world-class travel experiences with a focus on accessibility and performance.',
-      posted_at: '2d ago',
-    },
-  ];
+  async function fetchJobs() {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  const filteredJobs = mockJobs.filter(job =>
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    (filter === "all" || job.category === filter)
+      if (error) throw error;
+      setJobs(data || []);
+    } catch (err: any) {
+      toast.error(`Failed to fetch jobs: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleQueue(jobId: string) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Authentication required");
+
+      const { error } = await supabase
+        .from('applications')
+        .insert({
+          user_id: user.id,
+          job_id: jobId,
+          portal_name: 'linkedin', // Defaulting to linkedin, in a real flow this would come from the Job record
+          resume_id: null, // Nullable as per Phase 1 fix
+          applied_via: 'auto',
+          status: 'Queued',
+        });
+
+      if (error) throw error;
+      toast.success("Job successfully added to AI Auto-Queue!");
+    } catch (err: any) {
+      toast.error(`Queueing failed: ${err.message}`);
+    }
+  }
+
+  const filteredJobs = jobs.filter(job =>
+    (job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     job.company.toLowerCase().includes(searchQuery.toLowerCase())) &&
+    (filter === "all" || job.portal_name === filter || job.employment_type === filter)
   );
 
   return (
@@ -110,12 +106,12 @@ export default function JobsPage() {
 
       {/* Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-        {["all", "Frontend", "Backend", "Fullstack", "Remote"].map((f) => (
+        {["all", "linkedin", "indeed", "naukri", "Remote"].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border",
+              "px-4 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border capitalize",
               filter === f
                 ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20"
                 : "bg-white/5 border-white/10 text-white/40 hover:text-white hover:bg-white/10"
@@ -148,16 +144,16 @@ export default function JobsPage() {
                     title: job.title,
                     company: job.company,
                     location: job.location,
-                    salary_min: parseInt(job.salary.split('L')[0].replace('₹', '')) * 100000,
-                    salary_max: parseInt(job.salary.split('L')[1]?.replace('₹', '').replace(' - ', '')) * 100000 || null,
+                    salary_min: job.salary_min,
+                    salary_max: job.salary_max,
                   }}
                   match={{
                     id: job.id,
-                    match_score: job.score,
+                    match_score: 95, // In a real app, this would come from a 'job_matches' table or AI on the fly
                     missing_skills: [],
                     match_reason: job.description
                   }}
-                  onQueue={(id) => toast.success(`Auto-queueing job ${id}`)}
+                  onQueue={() => handleQueue(job.id)}
                   onSkip={(id) => toast.info(`Skipped job ${id}`)}
                 />
               ))}
