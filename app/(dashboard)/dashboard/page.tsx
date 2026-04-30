@@ -78,7 +78,16 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           className="lg:col-span-8 space-y-6"
         >
-          <StatsGrid stats={{ totalApps: 100, interviews: 5, pending: 45, successRate: 12 }} />
+          <StatsGrid stats={{ 
+            total_applied: 104, 
+            applied_today: 12, 
+            interviews_scheduled: 5, 
+            offers_received: 1, 
+            unread_messages: 3, 
+            ats_score: 92, 
+            match_rate: 94, 
+            portals_connected: 2 
+          }} />
 
           {/* Recent Activity Feed */}
           <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-sm">
@@ -91,11 +100,11 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              {/* Mock Data for visual layout */}
+              {/* We will load real applications from Supabase here */}
               {[
-                { id: '1', status: 'applied', job: { title: 'Senior Frontend Engineer', company: 'Vercel' }, applied_at: new Date().toISOString() },
-                { id: '2', status: 'interview', job: { title: 'Product Engineer', company: 'Linear' }, applied_at: new Date().toISOString() },
-                { id: '3', status: 'viewed', job: { title: 'Software Engineer', company: 'Stripe' }, applied_at: new Date().toISOString() },
+                { id: '1', status: 'applied', job: { title: 'Senior Frontend Engineer', company: 'Vercel', apply_url: '#' }, applied_at: new Date().toISOString() },
+                { id: '2', status: 'interview', job: { title: 'Product Engineer', company: 'Linear', apply_url: '#' }, applied_at: new Date().toISOString() },
+                { id: '3', status: 'viewed', job: { title: 'Software Engineer', company: 'Stripe', apply_url: '#' }, applied_at: new Date().toISOString() },
               ].map((app, i) => (
                 <ApplicationRow
                   key={i}
@@ -105,6 +114,9 @@ export default function DashboardPage() {
                   onExpand={() => {}}
                 />
               ))}
+              <div className="text-center p-4">
+                 <span className="text-xs text-white/40">Connect your database to view real applications.</span>
+              </div>
             </div>
           </div>
         </motion.div>

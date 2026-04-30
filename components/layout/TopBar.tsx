@@ -4,7 +4,7 @@ import React from "react";
 import { Bell, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function TopBar() {
+export default function TopBar({ user }: { user?: { name: string, email: string } }) {
   return (
     <header className="h-16 border-b border-white/5 bg-[#0A0A0A]/50 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40">
       <div className="flex items-center gap-4 flex-1">
@@ -26,10 +26,12 @@ export default function TopBar() {
         <div className="h-8 w-[1px] bg-white/10 mx-1" />
         <div className="flex items-center gap-3 pl-2">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-white">Alex Rivera</p>
+            <p className="text-sm font-medium text-white">{user?.name || 'Guest User'}</p>
             <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Professional</p>
           </div>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 ring-2 ring-white/10" />
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 ring-2 ring-white/10 flex items-center justify-center font-bold text-xs uppercase">
+             {user?.name?.[0] || 'G'}
+          </div>
         </div>
       </div>
     </header>

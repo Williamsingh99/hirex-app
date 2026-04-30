@@ -3,18 +3,24 @@
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
 import { LogIn } from 'lucide-react'
-import Link from 'next/link'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
   const supabase = createClient()
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
-      },
-    })
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
+        },
+      })
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to initiate login. Please check your Supabase configuration.");
+      console.error(error);
+    }
   }
 
   return (

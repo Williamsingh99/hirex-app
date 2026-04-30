@@ -28,7 +28,7 @@ const navItems = [
   { id: "inbox", label: "Messages", href: "/dashboard/inbox", icon: Inbox },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ user }: { user?: { name: string, email: string } }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
 
@@ -99,10 +99,12 @@ export default function Sidebar() {
           "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
           isCollapsed ? "justify-center" : ""
         )}>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0" />
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0 flex items-center justify-center font-bold text-xs uppercase">
+            {user?.name?.[0] || 'G'}
+          </div>
           {!isCollapsed && (
             <div className="flex-1 overflow-hidden">
-              <p className="text-white text-sm font-medium truncate">Alex Rivera</p>
+              <p className="text-white text-sm font-medium truncate">{user?.name || 'Guest User'}</p>
               <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Pro Plan</p>
             </div>
           )}
