@@ -53,11 +53,18 @@ export default function ProfilePage() {
           .from("profiles")
           .select("*")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
-        if (data) setFormData(data);
+        
+        setFormData(prev => ({
+          ...prev,
+          ...data,
+          full_name: data?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "",
+          email: data?.email || user.email || "",
+        }));
       } catch (err: any) {
+        console.error(err);
         toast.error("Failed to load profile");
       } finally {
         setLoading(false);
