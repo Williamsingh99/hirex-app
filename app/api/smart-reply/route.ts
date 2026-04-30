@@ -32,29 +32,40 @@ export async function POST(req: Request) {
 
       Each response must be professional, natural, and avoid typical "AI-sounding" clichés.
 
-      Return the results strictly as a JSON object:
+      Return the results strictly as a JSON object with this exact structure:
       {
         "drafts": [
-          { "type": "Professional", "content": "..." },
-          { "type": "Enthusiastic", "content": "..." },
-          { "type": "Strategic", "content": "..." }
+          "[Professional reply text here]",
+          "[Enthusiastic reply text here]",
+          "[Strategic reply text here]"
         ]
       }
 
-      Ensure the output is valid JSON.
+      The drafts array must contain exactly 3 plain strings. No nested objects. Ensure output is valid JSON.
     `;
 
     const response = await openai.chat.completions.create({
       model: NVIDIA_AI_CONFIG.model,
       messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
       temperature: 0.7,
     });
 
     const content = response.choices[0].message.content;
     if (!content) throw new Error('AI returned empty response');
 
-    return NextResponse.json(JSON.parse(content));
+    // Extract JSON even if model wraps it in markdown code blocks
+    const jsonMatch = content.match(/{[\s\S]*}/); 
+    if (!jsonMatch) throw new Error('AI did not return valid JSON');
+
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // Normalize: handle both string[] and {type,content}[] formats
+    const rawDrafts = parsed.drafts || [];
+    const drafts: string[] = rawDrafts.map((d: any) =>
+      typeof d === 'string' ? d : d.content || JSON.stringify(d)
+    );
+
+    return NextResponse.json({ drafts });
   } catch (error: any) {
     console.error('[SMART_REPLY_ERROR]', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
