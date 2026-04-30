@@ -133,11 +133,40 @@ export default function LandingPage() {
             <div className="relative p-3 rounded-[2rem] bg-[#0F0F0F]/80 border border-white/20 backdrop-blur-2xl shadow-2xl">
               <div className="rounded-2xl overflow-hidden bg-[#050505] aspect-video relative">
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-60 z-10" />
-                <img
-                  src="https://via.placeholder.com/1200x800/050505/333?text=HireX+Autonomous+Dashboard"
-                  alt="HireX Dashboard"
-                  className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-1000"
-                />
+                <div className="relative w-full h-full bg-[#0A0A0A] overflow-hidden flex items-center justify-center">
+  {/* Glassmorphism Abstract UI Fallback */}
+  <div className="absolute inset-0 opacity-40">
+    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+  </div>
+
+  <div className="relative w-[80%] h-[60%] bg-white/[0.03] border border-white/10 rounded-2xl backdrop-blur-3xl p-6 flex flex-col gap-6 shadow-2xl">
+    {/* Simulated Header */}
+    <div className="flex items-center justify-between w-full">
+      <div className="flex gap-2">
+        <div className="w-3 h-3 rounded-full bg-rose-500/50" />
+        <div className="w-3 h-3 rounded-full bg-amber-500/50" />
+        <div className="w-3 h-3 rounded-full bg-emerald-500/50" />
+      </div>
+      <div className="w-24 h-3 bg-white/10 rounded-full" />
+    </div>
+
+    {/* Simulated Content Grid */}
+    <div className="grid grid-cols-3 gap-4 flex-1">
+      <div className="col-span-2 space-y-4">
+        <div className="w-full h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-white/5 rounded-xl animate-pulse" />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-24 bg-white/5 border border-white/5 rounded-xl animate-pulse" />
+          <div className="h-24 bg-white/5 border border-white/5 rounded-xl animate-pulse" />
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div className="w-full h-full bg-white/5 border border-white/5 rounded-xl animate-pulse" />
+      </div>
+    </div>
+  </div>
+
+  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-60 z-10" />
+</div>
               </div>
             </div>
           </motion.div>
