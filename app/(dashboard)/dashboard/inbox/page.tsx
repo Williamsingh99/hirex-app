@@ -24,10 +24,10 @@ import { createClient } from "@/lib/supabase/client";
 import { MessageRecord } from "@/types/database";
 
 export default function InboxPage() {
-  const [activeMessage, setActiveMessage] = useState<<MessageMessageRecord | null>(null);
+  const [activeMessage, setActiveMessage] = useState<MessageRecord | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [messages, setMessages] = useState<<MessageMessageRecord[]>([]);
+  const [messages, setMessages] = useState<MessageRecord[]>([]);
   const supabase = createClient();
 
   useEffect(() => {
