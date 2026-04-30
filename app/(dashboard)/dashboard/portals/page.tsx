@@ -104,9 +104,12 @@ export default function PortalsPage() {
           mockPortals.map((portal) => (
             <PortalCard
               key={portal.id}
-              portal={portal}
-              isSyncing={syncing === portal.id}
-              onSync={() => handleSync(portal.id)}
+              portal={portal.id}
+              status={portal.status === 'connected' ? 'active' : portal.status}
+              jobsFound={portal.status === 'connected' ? 42 : 0}
+              lastSynced={portal.last_sync !== 'Never' ? new Date().toISOString() : undefined}
+              onConnect={() => handleSync(portal.id)}
+              isConnecting={syncing === portal.id}
             />
           ))
         )}

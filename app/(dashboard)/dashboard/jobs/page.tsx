@@ -144,7 +144,21 @@ export default function JobsPage() {
               {filteredJobs.map((job) => (
                 <JobMatchCard
                   key={job.id}
-                  job={job}
+                  job={{
+                    title: job.title,
+                    company: job.company,
+                    location: job.location,
+                    salary_min: parseInt(job.salary.split('L')[0].replace('₹', '')) * 100000,
+                    salary_max: parseInt(job.salary.split('L')[1]?.replace('₹', '').replace(' - ', '')) * 100000 || null,
+                  }}
+                  match={{
+                    id: job.id,
+                    match_score: job.score,
+                    missing_skills: [],
+                    match_reason: job.description
+                  }}
+                  onQueue={(id) => toast.success(`Auto-queueing job ${id}`)}
+                  onSkip={(id) => toast.info(`Skipped job ${id}`)}
                 />
               ))}
             </AnimatePresence>
