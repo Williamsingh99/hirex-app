@@ -33,10 +33,21 @@ const portalConfigs = {
     color: "from-blue-600 to-cyan-600",
     icon: "L",
   },
+  glassdoor: {
+    name: "Glassdoor",
+    description: "Company Reviews & Jobs",
+    color: "from-emerald-500 to-green-600",
+    icon: "G",
+  },
 };
 
 export default function PortalCard({ portal, status, jobsFound, lastSynced, onConnect, isConnecting }: PortalCardProps) {
-  const config = portalConfigs[portal];
+  const config = portalConfigs[portal] || {
+    name: portal,
+    description: "Portal",
+    color: "from-gray-500 to-gray-600",
+    icon: portal?.[0]?.toUpperCase() || "?",
+  };
   const isActive = status === "active";
 
   return (

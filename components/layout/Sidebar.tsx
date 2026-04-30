@@ -95,8 +95,8 @@ export default function Sidebar({ user }: { user?: { name: string, email: string
 
       {/* Bottom Section */}
       <div className="p-3 border-t border-white/5 space-y-2">
-        <div className={cn(
-          "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
+        <Link href="/dashboard/profile" className={cn(
+          "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 hover:bg-white/5 cursor-pointer",
           isCollapsed ? "justify-center" : ""
         )}>
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0 flex items-center justify-center font-bold text-xs uppercase">
@@ -108,7 +108,7 @@ export default function Sidebar({ user }: { user?: { name: string, email: string
               <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Pro Plan</p>
             </div>
           )}
-        </div>
+        </Link>
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}

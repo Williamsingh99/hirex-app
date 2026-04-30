@@ -24,7 +24,7 @@ export default function TopBar({ user }: { user?: { name: string, email: string 
           <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full" />
         </button>
         <div className="h-8 w-[1px] bg-white/10 mx-1" />
-        <div className="flex items-center gap-3 pl-2">
+        <Link href="/dashboard/profile" className="flex items-center gap-3 pl-2 hover:bg-white/5 p-1.5 rounded-xl transition-colors cursor-pointer">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-medium text-white">{user?.name || 'Guest User'}</p>
             <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Professional</p>
@@ -32,7 +32,7 @@ export default function TopBar({ user }: { user?: { name: string, email: string 
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 ring-2 ring-white/10 flex items-center justify-center font-bold text-xs uppercase">
              {user?.name?.[0] || 'G'}
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );

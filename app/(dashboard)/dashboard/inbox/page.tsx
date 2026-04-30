@@ -34,41 +34,41 @@ export default function InboxPage() {
   const mockMessages = [
     {
       id: '1',
-      sender: 'Sarah Jenkins',
+      sender_name: 'Sarah Jenkins',
       company: 'Vercel',
       subject: 'Interview Invitation: Senior Frontend Engineer',
-      preview: 'We were impressed with your profile and would like to invite you for a technical interview...',
-      timestamp: '2h ago',
-      status: 'unread',
+      ai_summary: 'We were impressed with your profile and would like to invite you for a technical interview...',
+      received_at: new Date().toISOString(),
+      message_type: 'interview_invite',
       content: 'Hi there, we saw your application and your ATS score was incredibly high. We would love to schedule a call to discuss your experience with Next.js and distributed systems. Are you available this Thursday?',
       ai_suggestion: 'Thank Sarah for the invitation, express excitement about Vercel\'s edge network, and propose Thursday at 2 PM PST.',
     },
     {
       id: '2',
-      sender: 'Michael Chen',
+      sender_name: 'Michael Chen',
       company: 'Linear',
       subject: 'Application Update',
-      preview: 'Thank you for your interest in Linear. We have reviewed your portfolio and...',
-      timestamp: '5h ago',
-      status: 'read',
+      ai_summary: 'Thank you for your interest in Linear. We have reviewed your portfolio and...',
+      received_at: new Date(Date.now() - 86400000).toISOString(),
+      message_type: 'general',
       content: 'Thank you for applying to Linear. We have reviewed your portfolio and find your design sense aligns perfectly with our product philosophy. We are currently finalizing the interview slots for next week.',
       ai_suggestion: 'Acknowledge the update and mention how you admire Linear\'s focus on keyboard-centric productivity.',
     },
     {
       id: '3',
-      sender: 'Recruiter',
+      sender_name: 'Recruiter',
       company: 'Stripe',
       subject: 'Follow-up regarding your application',
-      preview: 'Checking in to see if you are still interested in the Software Engineer role...',
-      timestamp: '1d ago',
-      status: 'unread',
+      ai_summary: 'Checking in to see if you are still interested in the Software Engineer role...',
+      received_at: new Date(Date.now() - 172800000).toISOString(),
+      message_type: 'general',
       content: 'Hi! Just checking in to see if you are still interested in the Software Engineer role at Stripe. We are looking to move quickly with candidates this week.',
       ai_suggestion: 'Confirm continued interest and emphasize your recent work with high-scale payment APIs.',
     },
   ];
 
   const filteredMessages = mockMessages.filter(m =>
-    m.sender.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    m.sender_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.subject.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -125,7 +125,7 @@ export default function InboxPage() {
                   <MessageItem
                     key={msg.id}
                     message={msg}
-                    active={activeMessage?.id === msg.id}
+                    isActive={activeMessage?.id === msg.id}
                     onClick={() => setActiveMessage(msg)}
                   />
                 ))}
@@ -148,10 +148,10 @@ export default function InboxPage() {
                 <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
-                      {activeMessage.sender[0]}
+                      {activeMessage.sender_name?.[0]}
                     </div>
                     <div>
-                      <h3 className="text-white font-bold">{activeMessage.sender}</h3>
+                      <h3 className="text-white font-bold">{activeMessage.sender_name}</h3>
                       <p className="text-white/40 text-xs">{activeMessage.company}</p>
                     </div>
                   </div>
@@ -167,7 +167,7 @@ export default function InboxPage() {
                   <div className="flex flex-col items-start gap-2">
                     <div className="flex items-center gap-2 text-white/20 text-[10px] uppercase font-bold tracking-widest">
                       <Clock size={12} />
-                      <span>{activeMessage.timestamp}</span>
+                      <span>{new Date(activeMessage.received_at).toLocaleDateString()}</span>
                     </div>
                     <div className="p-4 rounded-2xl rounded-tl-none bg-white/10 text-white text-sm leading-relaxed max-w-xl">
                       {activeMessage.content}
