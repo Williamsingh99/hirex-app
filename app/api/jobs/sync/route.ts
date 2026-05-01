@@ -3,14 +3,16 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
-// bebity/linkedin-jobs-scraper — popular, well-maintained actor
-const ACTOR_ID = 'bebity~linkedin-jobs-scraper';
+
+// apify/google-search-scraper — Official Apify actor, FREE with platform credits, no rent needed.
+// We search Google Jobs (site:linkedin.com/jobs OR jobs.google.com) to get real job listings.
+const ACTOR_ID = 'apify~google-search-scraper';
 
 export async function POST(req: Request) {
   try {
     if (!APIFY_API_TOKEN) {
       return NextResponse.json(
-        { error: 'APIFY_API_TOKEN not configured. Please add it to your environment variables.' },
+        { error: 'APIFY_API_TOKEN not configured in environment variables.' },
         { status: 500 }
       );
     }
@@ -21,123 +23,132 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'keywords is required (e.g. "React Developer")' }, { status: 400 });
     }
 
-    console.log(`[APIFY_SYNC] Starting LinkedIn Jobs scrape for: "${keywords}" in "${location || 'Anywhere'}"`);
+    // Build a Google Jobs search query
+    const locationPart = location ? ` ${location}` : '';
+    const googleQuery = `${keywords}${locationPart} jobs site:linkedin.com/jobs`;
 
-    // Step 1: Start the Apify Actor run
+    console.log(`[JOBS_SYNC] Google Search query: "${googleQuery}"`);
+
+    // Step 1: Start the Apify actor run
     const runResponse = await fetch(
       `https://api.apify.com/v2/acts/${ACTOR_ID}/runs?token=${APIFY_API_TOKEN}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: keywords,
-          location: location || '',
-          rows: maxJobs,
-          proxy: {
-            useApifyProxy: true,
-          },
+          queries: googleQuery,
+          maxPagesPerQuery: 2,        // 2 pages × ~10 results = ~20 jobs
+          resultsPerPage: 10,
+          languageCode: 'en',
+          countryCode: 'us',
+          customDataFunction: '',
         }),
       }
     );
 
     if (!runResponse.ok) {
-      const errorText = await runResponse.text();
-      throw new Error(`Apify run failed: ${runResponse.status} — ${errorText}`);
+      const errText = await runResponse.text();
+      throw new Error(`Apify run failed: ${runResponse.status} — ${errText}`);
     }
 
     const runData = await runResponse.json();
     const runId = runData?.data?.id;
-
-    if (!runId) {
-      throw new Error('Apify did not return a run ID');
-    }
-
-    console.log(`[APIFY_SYNC] Run started. Run ID: ${runId}`);
-
-    // Step 2: Wait for the run to finish (poll every 5s, max 3 minutes)
-    let runStatus = 'RUNNING';
-    let attempts = 0;
-    const maxAttempts = 36; // 36 * 5s = 3 minutes
-
-    while (runStatus === 'RUNNING' || runStatus === 'READY') {
-      if (attempts >= maxAttempts) {
-        throw new Error('Apify run timed out after 3 minutes');
-      }
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-
-      const statusRes = await fetch(
-        `https://api.apify.com/v2/actor-runs/${runId}?token=${APIFY_API_TOKEN}`
-      );
-      const statusData = await statusRes.json();
-      runStatus = statusData?.data?.status;
-      attempts++;
-      console.log(`[APIFY_SYNC] Attempt ${attempts}: Status = ${runStatus}`);
-    }
-
-    if (runStatus !== 'SUCCEEDED') {
-      throw new Error(`Apify run did not succeed. Final status: ${runStatus}`);
-    }
-
-    // Step 3: Fetch dataset results
     const datasetId = runData?.data?.defaultDatasetId;
+
+    if (!runId) throw new Error('Apify did not return a run ID');
+
+    console.log(`[JOBS_SYNC] Run started. ID: ${runId}`);
+
+    // Step 2: Poll for completion (max 3 min)
+    let status = 'RUNNING';
+    let attempts = 0;
+    while ((status === 'RUNNING' || status === 'READY') && attempts < 36) {
+      await new Promise((r) => setTimeout(r, 5000));
+      const s = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${APIFY_API_TOKEN}`);
+      status = (await s.json())?.data?.status;
+      attempts++;
+      console.log(`[JOBS_SYNC] Poll ${attempts}: ${status}`);
+    }
+
+    if (status !== 'SUCCEEDED') {
+      throw new Error(`Apify run did not succeed. Final status: ${status}`);
+    }
+
+    // Step 3: Fetch search result items
     const dataRes = await fetch(
-      `https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_API_TOKEN}&format=json&limit=${maxJobs}`
+      `https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_API_TOKEN}&format=json&limit=200`
     );
-    const rawJobs: any[] = await dataRes.json();
+    const pages: any[] = await dataRes.json();
 
-    console.log(`[APIFY_SYNC] Fetched ${rawJobs.length} raw jobs from Apify`);
+    // Flatten: each page has organicResults[]
+    const results: any[] = [];
+    for (const page of pages) {
+      if (Array.isArray(page.organicResults)) {
+        results.push(...page.organicResults);
+      }
+    }
 
-    if (!rawJobs || rawJobs.length === 0) {
+    console.log(`[JOBS_SYNC] Got ${results.length} Google search results`);
+
+    if (results.length === 0) {
       return NextResponse.json({ message: 'No jobs found for this query', inserted: 0 });
     }
 
-    // Step 4: Transform and upsert into Supabase jobs table
+    // Step 4: Map Google results → jobs table schema
     const supabase = await createClient();
 
-    const jobsToUpsert = rawJobs
-      .filter((j) => j.title && j.companyName)
-      .map((j) => ({
-        portal_name: 'linkedin',
-        portal_job_id: j.id || j.jobId || `linkedin-${Date.now()}-${Math.random()}`,
-        title: j.title || 'Untitled',
-        company: j.companyName || 'Unknown Company',
-        location: j.location || null,
-        is_remote: j.workType?.toLowerCase().includes('remote') || false,
-        salary_min: null,
-        salary_max: null,
-        currency: 'USD',
-        description: j.description || j.descriptionText || null,
-        required_skills: [],
-        experience_required: j.experienceLevel || null,
-        employment_type: j.contractType || j.employmentType || null,
-        posted_at: j.postedAt ? new Date(j.postedAt).toISOString() : null,
-        apply_url: j.applyUrl || j.linkedInUrl || null,
-      }));
+    const jobsToUpsert = results
+      .slice(0, maxJobs)
+      .filter((r) => r.title && r.displayedUrl)
+      .map((r, idx) => {
+        // Extract company from description or displayedUrl
+        const displayParts = (r.displayedUrl || '').split('›');
+        const company = displayParts[1]?.trim() || 'Unknown Company';
+
+        return {
+          portal_name: 'linkedin',
+          portal_job_id: `google-${Date.now()}-${idx}`,
+          title: r.title?.replace(/ - .*/, '').trim() || 'Untitled',
+          company,
+          location: location || null,
+          is_remote: keywords.toLowerCase().includes('remote') || (location || '').toLowerCase().includes('remote'),
+          salary_min: null,
+          salary_max: null,
+          currency: 'USD',
+          description: r.description || r.snippet || null,
+          required_skills: [],
+          experience_required: null,
+          employment_type: null,
+          posted_at: null,
+          apply_url: r.url || null,
+        };
+      });
 
     const { data: inserted, error: upsertError } = await supabase
       .from('jobs')
-      .upsert(jobsToUpsert, { onConflict: 'portal_name,portal_job_id' })
+      .insert(jobsToUpsert)   // insert (not upsert) since IDs are unique per run
       .select('id');
 
     if (upsertError) {
-      console.error('[APIFY_SYNC] Supabase upsert error:', upsertError);
+      console.error('[JOBS_SYNC] Supabase error:', upsertError);
       throw new Error(`Database error: ${upsertError.message}`);
     }
 
-    console.log(`[APIFY_SYNC] Successfully upserted ${inserted?.length || 0} jobs into Supabase`);
+    console.log(`[JOBS_SYNC] Inserted ${inserted?.length || 0} jobs`);
 
     return NextResponse.json({
       success: true,
-      message: `Synced ${inserted?.length || 0} jobs from LinkedIn via Apify`,
+      message: `Synced ${inserted?.length || 0} jobs for "${keywords}"`,
       inserted: inserted?.length || 0,
       keywords,
       location: location || 'Any',
     });
   } catch (error: any) {
-    console.error('[APIFY_SYNC_ERROR]', error);
+    console.error('[JOBS_SYNC_ERROR]', error);
     return NextResponse.json(
       { error: error.message || 'Internal Server Error' },
       { status: 500 }
     );
   }
 }
+
