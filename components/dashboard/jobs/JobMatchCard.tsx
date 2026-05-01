@@ -24,77 +24,76 @@ export default function JobMatchCard({ match, job, onQueue, onSkip }: JobMatchCa
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm transition-all hover:border-white/20 flex flex-col h-full"
+      className="group bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm transition-all hover:border-white/20"
     >
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-white font-bold overflow-hidden">
-             {/* Favicon fallback */}
-             <img src={`https://logo.clearbit.com/${job.company.toLowerCase().replace(/ /g, '')}.com`}
-               className="w-full h-full object-cover"
-               onError={(e) => {
-                 (e.target as HTMLImageElement).src = "https://via.placeholder.com/40?text=C";
-               }}
-             />
+      {/* Top Row: Logo + Title + Score */}
+      <div className="flex justify-between items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 flex-shrink-0 bg-white/10 rounded-lg flex items-center justify-center overflow-hidden">
+            <img
+              src={`https://logo.clearbit.com/${job.company.toLowerCase().replace(/ /g, '')}.com`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            <Briefcase size={14} className="text-white/30 absolute" />
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-white leading-tight">{job.title}</h3>
-            <p className="text-white/40 text-sm">{job.company}</p>
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold text-white leading-tight truncate">{job.title}</h3>
+            <p className="text-white/40 text-xs truncate">{job.company}</p>
           </div>
         </div>
-        <div className="text-right">
-          <span className="text-2xl font-black text-white">{match.match_score}%</span>
-          <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Match</p>
+        <div className="flex-shrink-0 flex items-center gap-2">
+          <span className="text-lg font-black text-white">{match.match_score}%</span>
+          <div className={`w-2 h-2 rounded-full ${getScoreColor(match.match_score)}`} />
         </div>
       </div>
 
-      <div className="space-y-3 mb-6 flex-1">
-        <div className="flex items-center gap-3 text-xs text-white/60">
-          <MapPin size={14} className="text-blue-500" />
-          <span>{job.location || "Remote"}</span>
-        </div>
-        <div className="flex items-center gap-3 text-xs text-white/60">
-          <DollarSign size={14} className="text-blue-500" />
-          <span>{job.salary_min ? `₹${job.salary_min.toLocaleString()} - ${job.salary_max?.toLocaleString()}` : "Salary not disclosed"}</span>
-        </div>
+      {/* Meta Row: location + salary inline */}
+      <div className="flex items-center gap-4 text-xs text-white/40 mb-3">
+        <span className="flex items-center gap-1">
+          <MapPin size={11} className="text-blue-500" />
+          {job.location || 'Remote'}
+        </span>
+        <span className="flex items-center gap-1">
+          <DollarSign size={11} className="text-blue-500" />
+          {job.salary_min ? `₹${job.salary_min.toLocaleString()}` : 'Salary TBD'}
+        </span>
+      </div>
 
-        <div className="pt-3 space-y-2">
-          <p className="text-[10px] font-bold text-white/30 uppercase tracking-wider">Missing Skills</p>
-          <div className="flex flex-wrap gap-2">
-            {match.missing_skills?.length > 0 ? (
-              match.missing_skills.map((skill: string, i: number) => (
-                <span key={i} className="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-medium">
-                  {skill}
-                </span>
-              ))
-            ) : (
-              <span className="text-green-400 text-xs font-medium">No missing skills!</span>
-            )}
-          </div>
-        </div>
-
-        <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 mt-4">
-          <div className="flex items-center gap-2 text-blue-400 mb-1">
-            <Sparkles size={14} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">AI Insight</span>
-          </div>
-          <p className="text-xs text-white/80 italic leading-relaxed">
-            "{match.match_reason}"
+      {/* AI Insight — single line, truncated */}
+      {match.match_reason && (
+        <div className="flex items-start gap-2 px-3 py-2 bg-blue-500/8 rounded-xl border border-blue-500/15 mb-3">
+          <Sparkles size={11} className="text-blue-400 mt-0.5 flex-shrink-0" />
+          <p className="text-[11px] text-white/50 italic line-clamp-2 leading-relaxed">
+            {match.match_reason}
           </p>
         </div>
-      </div>
+      )}
 
-      <div className="flex gap-3 mt-auto pt-6">
+      {/* Actions */}
+      <div className="flex gap-2">
         <button
           onClick={() => onQueue(match.id)}
-          className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-xs font-bold transition-all active:scale-95"
+          className="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
         >
-          <Zap size={14} />
+          <Zap size={12} />
           Auto-Queue
         </button>
+        {match.apply_url && (
+          <a
+            href={match.apply_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 rounded-xl text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all"
+          >
+            View
+          </a>
+        )}
         <button
           onClick={() => onSkip(match.id)}
-          className="px-4 py-2 rounded-lg text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all active:scale-95"
+          className="px-3 py-2 rounded-xl text-xs font-bold text-white/30 hover:text-white/60 hover:bg-white/5 transition-all"
         >
           Skip
         </button>
