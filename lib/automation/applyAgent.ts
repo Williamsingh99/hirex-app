@@ -1,25 +1,27 @@
 import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { chromium } from 'playwright-extra';
+import stealth from 'playwright-stealth';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'dummy_key_for_build',
-});
+chromium.use(stealth());
 
-export async function applyToJob(userId: string, matchId: string) {
+export async function applyToJob(userId: string, jobId: string) {
   const supabase = await createClient();
+  const browserlessToken = process.env.BROWSERLESS_TOKEN;
 
-  // 1. Fetch Match and Job Details
-  const { data: match, error: matchError } = await supabase
-    .from('job_matches')
-    .select('*, job(*)')
-    .eq('id', matchId)
+  if (!browserlessToken) {
+    throw new Error('BROWSERLESS_TOKEN is missing');
+  }
+
+  // 1. Fetch job details
+  const { data: job, error: jobError } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('id', jobId)
     .single();
 
-  if (matchError || !match) throw new Error('Match not found');
-  const job = match.job;
+  if (jobError || !job) throw new Error('Job not found');
 
-  // 2. Fetch User Profile and Active Resume
+  // 2. Fetch user profile & resume
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
@@ -28,90 +30,162 @@ export async function applyToJob(userId: string, matchId: string) {
 
   const { data: resume } = await supabase
     .from('resumes')
-    .select('id, file_url')
+    .select('file_url')
     .eq('user_id', userId)
     .eq('is_active', true)
     .single();
 
-  if (!profile || !resume) throw new Error('Profile or active resume missing');
+  if (!profile || !resume) throw new Error('Profile or resume missing');
 
-  // 3. Generate AI Cover Letter
-  const coverLetterPrompt = `Write a 150-word cover letter for ${job.title} at ${job.company}.
-    Candidate: ${profile.full_name}, ${profile.headline}
-    Top 3 matching skills: ${match.missing_skills?.length === 0 ? 'Perfect match' : match.missing_skills.join(', ')}
-    Tone: Professional, confident, and specific to this company.
-    Start with a strong hook. End with a clear call to action.
-    No generic phrases like 'I am writing to express my interest'.
-    Return ONLY the cover letter text.`;
-
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [{ role: 'system', content: coverLetterPrompt }],
+  // 3. Connect to Browserless
+  const wsEndpoint = `wss://chrome.browserless.io?token=${browserlessToken}`;
+  const browser = await chromium.connect({ wsEndpoint });
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    viewport: { width: 1920, height: 1080 },
   });
+  
+  const page = await context.newPage();
 
-  const coverLetter = completion.choices[0].message.content || '';
-
-  // 4. Handle Portal-Specific Application Logic
-  let applicationStatus = 'auto';
-
-  if (job.portal === 'linkedin') {
-    // API implementation (Mocked for this build stage)
-    console.log(`[LinkedIn API] Applying with cover letter: ${coverLetter.substring(0, 50)}...`);
-  } else if (job.portal === 'indeed') {
-    // API implementation (Mocked for this build stage)
-    console.log(`[Indeed API] Applying with cover letter: ${coverLetter.substring(0, 50)}...`);
-  } else if (job.portal === 'naukri') {
-    // REMOTE BROWSER IMPLEMENTATION (Fixes Vercel Serverless Timeout & Size Limits)
-    // We connect to a remote browser (Browserless.io) instead of launching locally
-    const { chromium } = require('playwright-extra');
-    const stealth = require('playwright-stealth');
-    chromium.use(stealth());
-    const browserlessToken = process.env.BROWSERLESS_TOKEN;
-    if (!browserlessToken) {
-      throw new Error('BROWSERLESS_TOKEN is missing. Remote browser connection failed.');
+  try {
+    // 4. Portal-specific automation
+    if (job.portal_name === 'linkedin') {
+      await applyLinkedIn(page, job, profile, resume);
+    } else if (job.portal_name === 'indeed') {
+      await applyIndeed(page, job, profile, resume);
+    } else if (job.portal_name === 'naukri') {
+      await applyNaukri(page, job, profile, resume);
+    } else {
+      throw new Error(`Unsupported portal: ${job.portal_name}`);
     }
 
-    const wsEndpoint = `wss://chrome.browserless.io?token=${browserlessToken}`;
-    const browser = await chromium.connect({ wsEndpoint });
-    const context = await browser.newContext();
-    const page = await context.newPage();
+    // 5. Update application status
+    await supabase
+      .from('applications')
+      .update({ 
+        status: 'Applied', 
+        applied_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId);
 
-    try {
-      await page.goto(job.apply_url);
-      await page.waitForSelector('input[type="file"]', { timeout: 5000 }).catch(() => {});
-      await page.fill('input[name="name"]', profile.full_name);
-      await page.fill('input[name="email"]', profile.email);
-      await page.click('button[type="submit"]');
-      await browser.close();
-    } catch (e) {
-      console.error(`[Naukri Automation] Error: ${e}`);
-      await browser.close();
-      throw e;
+    return { success: true, message: 'Application submitted successfully' };
+  } catch (error: any) {
+    console.error('Automation failed:', error);
+    await supabase
+      .from('applications')
+      .update({ 
+        status: 'Failed', 
+        notes: error.message,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId);
+    
+    throw error;
+  } finally {
+    await browser.close();
+  }
+}
+
+async function applyLinkedIn(page: any, job: any, profile: any, resume: any) {
+  await page.goto(job.apply_url, { waitUntil: 'networkidle', timeout: 30000 });
+  
+  // Wait for apply button
+  await page.waitForSelector('button.jobs-apply-button', { timeout: 10000 });
+  await page.click('button.jobs-apply-button');
+  
+  // Check if it's Easy Apply
+  const isEasyApply = await page.$('button.artdeco-button[aria-label*="Easy Apply"]');
+  
+  if (isEasyApply) {
+    // Upload resume
+    const fileInput = await page.$('input[type="file"]');
+    if (fileInput) {
+      await fileInput.setInputFiles(resume.file_url);
+    }
+    
+    // Fill any form fields
+    await page.fill('input[aria-label*="First name"]', profile.full_name.split(' ')[0] || '');
+    await page.fill('input[aria-label*="Last name"]', profile.full_name.split(' ')[1] || '');
+    await page.fill('input[aria-label*="Email"]', profile.email || '');
+    await page.fill('input[aria-label*="Phone"]', profile.phone || '');
+    
+    // Submit application
+    const submitButton = await page.$('button[aria-label*="Submit application"]');
+    if (submitButton) {
+      await submitButton.click();
+    } else {
+      // Click next through forms
+      const nextButton = await page.$('button[aria-label*="Next"]');
+      if (nextButton) {
+        await nextButton.click();
+        await page.waitForTimeout(2000);
+        const finalSubmit = await page.$('button[aria-label*="Submit"]');
+        if (finalSubmit) await finalSubmit.click();
+      }
+    }
+  } else {
+    // Redirect to external site
+    const externalButton = await page.$('button[aria-label*="Apply on company website"]');
+    if (externalButton) {
+      await externalButton.click();
     }
   }
+}
 
-  // 5. Create Application Record
-  const { error: appError } = await supabase
-    .from('applications')
-    .insert({
-      user_id: userId,
-      job_id: job.id,
-      portal: job.portal,
-      resume_id: resume.id,
-      cover_letter: coverLetter,
-      applied_via: 'auto',
-      status: 'applied',
-    });
+async function applyIndeed(page: any, job: any, profile: any, resume: any) {
+  await page.goto(job.apply_url, { waitUntil: 'networkidle', timeout: 30000 });
+  
+  // Indeed specific selectors
+  await page.waitForSelector('#indeedApplyButton', { timeout: 10000 });
+  await page.click('#indeedApplyButton');
+  
+  // Fill form
+  if (await page.$('input[name="fullname"]')) {
+    await page.fill('input[name="fullname"]', profile.full_name);
+  }
+  if (await page.$('input[name="email"]')) {
+    await page.fill('input[name="email"]', profile.email || '');
+  }
+  if (await page.$('input[name="phone"]')) {
+    await page.fill('input[name="phone"]', profile.phone || '');
+  }
+  
+  // Upload resume
+  const fileInput = await page.$('input[type="file"]');
+  if (fileInput) {
+    await fileInput.setInputFiles(resume.file_url);
+  }
+  
+  // Submit
+  const submitButton = await page.$('button[type="submit"]');
+  if (submitButton) {
+    await submitButton.click();
+  }
+}
 
-  if (appError) throw appError;
-
-  // 6. Update Job Match Status
-  const { error: matchErrorUpdate } = await supabase
-    .from('job_matches')
-    .update({ status: 'applied' })
-    .eq('id', matchId);
-
-  if (matchErrorUpdate) throw matchErrorUpdate;
-
-  return { success: true };
+async function applyNaukri(page: any, job: any, profile: any, resume: any) {
+  await page.goto(job.apply_url, { waitUntil: 'networkidle', timeout: 30000 });
+  
+  // Naukri specific automation
+  await page.waitForSelector('button.apply-btn', { timeout: 10000 });
+  await page.click('button.apply-btn');
+  
+  // Login check (user should already be logged in via extension)
+  const isLoggedIn = await page.$('.user-logged-in');
+  if (!isLoggedIn) {
+    throw new Error('Not logged in to Naukri. Please connect your account.');
+  }
+  
+  // Upload resume
+  const fileInput = await page.$('input[type="file"]');
+  if (fileInput) {
+    await fileInput.setInputFiles(resume.file_url);
+  }
+  
+  // Submit
+  const submitButton = await page.$('button.send-application');
+  if (submitButton) {
+    await submitButton.click();
+  }
 }
