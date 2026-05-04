@@ -72,5 +72,13 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vitest": "^1.6.0"
+  },
+  "overrides": {
+    "openai": {
+      "zod": "$zod"
+    },
+    "@anthropic-ai/sdk": {
+      "zod": "$zod"
+    }
   }
 }
