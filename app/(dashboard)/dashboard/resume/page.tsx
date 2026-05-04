@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -23,7 +22,6 @@ import AtsScoreRing from "@/components/resume/ui/AtsScoreRing";
 import AtsOptimizer from "@/components/resume/ui/AtsOptimizer";
 
 export default function ResumePage() {
-  const [activeTab, setActiveTab] = useState("optimize");
   const [currentResume, setCurrentResume] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

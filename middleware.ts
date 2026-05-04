@@ -1,7 +1,41 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
+
+// Initialize rate limiter only if Upstash env vars are present
+let ratelimit: Ratelimit | null = null
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  ratelimit = new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.slidingWindow(30, '1 m'), // 30 requests per minute
+    analytics: true,
+  })
+}
 
 export async function middleware(request: NextRequest) {
+  // 1. Rate Limiting for API routes
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    if (ratelimit) {
+      const ip = request.ip || request.headers.get('x-forwarded-for') || 'anonymous'
+      const { success, limit, reset, remaining } = await ratelimit.limit(ip)
+      
+      if (!success) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          { 
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+            }
+          }
+        )
+      }
+    }
+  }
+
   // If env variables are missing, we bypass the middleware strictly to avoid crashing the whole app
   // In a real production deployment, these variables MUST be set.
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -41,5 +75,6 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/login',
+    '/api/:path*',
   ],
 }
